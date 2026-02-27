@@ -29,16 +29,22 @@ export default async function DashboardPage() {
       kpis = data as DashboardKPIs;
     } else {
       // Fallback: direct queries if RPC is unavailable
-      const [{ count: contacts }, { count: deals }] = await Promise.all([
+      const [{ count: contacts }, openDealsResult, wonDealsResult] = await Promise.all([
         supabase.from("contacts").select("id", { count: "exact", head: true }).eq("organization_id", profile.organization_id),
-        supabase.from("deals").select("id", { count: "exact", head: true }).eq("organization_id", profile.organization_id).eq("status", "open"),
+        supabase.from("deals").select("value").eq("organization_id", profile.organization_id).eq("status", "open"),
+        supabase.from("deals").select("value").eq("organization_id", profile.organization_id).eq("status", "won"),
       ]);
+      const openDealsValue = (openDealsResult.data ?? []).reduce((s, d) => s + (d.value ?? 0), 0);
+      const wonDealsValue = (wonDealsResult.data ?? []).reduce((s, d) => s + (d.value ?? 0), 0);
+      const totalOpen = openDealsResult.data?.length ?? 0;
+      const totalWon = wonDealsResult.data?.length ?? 0;
+      const winRate = totalOpen + totalWon > 0 ? Math.round((totalWon / (totalOpen + totalWon)) * 100) : 0;
       kpis = {
         total_contacts: contacts ?? 0,
-        total_deals: deals ?? 0,
-        open_deals_value: 0,
-        won_deals_value: 0,
-        win_rate: 0,
+        total_deals: totalOpen,
+        open_deals_value: openDealsValue,
+        won_deals_value: wonDealsValue,
+        win_rate: winRate,
         activities_this_week: 0,
         new_contacts_this_month: 0,
         deals_by_stage: [],

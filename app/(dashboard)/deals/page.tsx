@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { KanbanBoard } from "@/components/deals/KanbanBoard";
+import { ClosedDealsSection } from "@/components/deals/ClosedDealsSection";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DealForm } from "@/components/deals/DealForm";
@@ -13,7 +14,7 @@ import { useT } from "@/lib/i18n/client";
 export default function DealsPage() {
   const t = useT();
   const [createOpen, setCreateOpen] = useState(false);
-  const { deals, stages, loading, refetch } = useDeals();
+  const { deals, closedDeals, stages, loading, refetch } = useDeals();
 
   return (
     <div className="space-y-6">
@@ -28,6 +29,8 @@ export default function DealsPage() {
       />
 
       <KanbanBoard deals={deals} stages={stages} loading={loading} onRefresh={refetch} />
+
+      <ClosedDealsSection deals={closedDeals} onRefresh={refetch} />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-lg">
