@@ -90,8 +90,6 @@ export function ClosedDealsSection({ deals, onRefresh }: ClosedDealsSectionProps
   const wonValue = wonDeals.reduce((s, d) => s + (d.value ?? 0), 0);
   const lostValue = lostDeals.reduce((s, d) => s + (d.value ?? 0), 0);
 
-  if (deals.length === 0) return null;
-
   const current = tab === "won" ? wonDeals : lostDeals;
 
   return (
@@ -106,7 +104,7 @@ export function ClosedDealsSection({ deals, onRefresh }: ClosedDealsSectionProps
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 text-xs text-emerald-400">
               <Trophy className="w-3.5 h-3.5" />
-              {wonDeals.length} ganados · {formatCurrency(wonValue)}
+              {wonDeals.length} ganados{wonDeals.length > 0 && ` · ${formatCurrency(wonValue)}`}
             </span>
             {lostDeals.length > 0 && (
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">

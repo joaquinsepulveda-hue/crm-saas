@@ -37,7 +37,7 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
       close_date: deal.close_date ? deal.close_date.split("T")[0] : undefined,
       notes: deal.notes ?? undefined,
     } : {
-      stage_id: stages[0]?.id,
+      stage_id: stages.find((s) => s.win_probability !== 100 && !(s.win_probability === 0 && s.position > 0))?.id,
     },
   });
 
@@ -107,9 +107,11 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
             <SelectValue placeholder="Seleccionar etapa" />
           </SelectTrigger>
           <SelectContent>
-            {stages.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-            ))}
+            {stages
+              .filter((s) => s.win_probability !== 100 && !(s.win_probability === 0 && s.position > 0))
+              .map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
           </SelectContent>
         </Select>
         {errors.stage_id && <p className="text-xs text-destructive">{errors.stage_id.message}</p>}

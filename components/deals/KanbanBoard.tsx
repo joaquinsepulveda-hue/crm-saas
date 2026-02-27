@@ -81,15 +81,24 @@ export function KanbanBoard({ deals: initialDeals, stages, loading, onRefresh }:
     );
   }
 
+  const visibleStages = stages.filter(
+    (s) => s.win_probability !== 100 && !(s.win_probability === 0 && s.position > 0)
+  );
+  const visibleStageIds = new Set(visibleStages.map((s) => s.id));
+  const orphanedDeals = deals.filter((d) => !visibleStageIds.has(d.stage_id));
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {stages.filter((s) => s.win_probability !== 100 && !(s.win_probability === 0 && s.position > 0)).map((stage) => (
+        {visibleStages.map((stage, idx) => (
           <KanbanColumn
             key={stage.id}
             stage={stage}
             stages={stages}
-            deals={deals.filter((d) => d.stage_id === stage.id)}
+            deals={[
+              ...deals.filter((d) => d.stage_id === stage.id),
+              ...(idx === 0 ? orphanedDeals : []),
+            ]}
             onRefresh={onRefresh}
           />
         ))}
