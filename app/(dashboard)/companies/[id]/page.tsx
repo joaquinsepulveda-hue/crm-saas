@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CompanyContactsList } from "@/components/companies/CompanyContactsList";
+import { CompanyContactsCard } from "@/components/companies/CompanyContactsCard";
 import { formatDate } from "@/lib/utils";
 import { getT } from "@/lib/i18n/server";
 import type { Metadata } from "next";
@@ -54,7 +54,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
             <CardTitle className="text-sm">{t.companies.detail.contacts} ({contacts?.length ?? 0})</CardTitle>
           </CardHeader>
           <CardContent>
-            <CompanyContactsList contacts={contacts ?? []} />
+            <CompanyContactsCard companyId={id} initialContacts={contacts ?? []} />
           </CardContent>
         </Card>
       </div>

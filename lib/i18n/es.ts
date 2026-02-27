@@ -133,6 +133,7 @@ export const es = {
       closeDate: 'Fecha de cierre',
       stage: 'Etapa',
       contact: 'Contacto',
+      company: 'Empresa',
       notes: 'Notas',
     },
     detail: {

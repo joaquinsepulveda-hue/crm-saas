@@ -24,6 +24,7 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
   const t = useT();
   const [loading, setLoading] = useState(false);
   const [contacts, setContacts] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<DealFormData>({
     resolver: zodResolver(dealSchema),
@@ -32,6 +33,7 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
       value: deal.value ?? undefined,
       stage_id: deal.stage_id,
       contact_id: deal.contact_id ?? undefined,
+      company_id: deal.company_id ?? undefined,
       close_date: deal.close_date ? deal.close_date.split("T")[0] : undefined,
       notes: deal.notes ?? undefined,
     } : {
@@ -40,12 +42,16 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
   });
 
   useEffect(() => {
-    const fetchContacts = async () => {
+    const fetchData = async () => {
       const supabase = createClient();
-      const { data } = await supabase.from("contacts").select("id, first_name, last_name").order("first_name");
-      if (data) setContacts(data);
+      const [{ data: contactsData }, { data: companiesData }] = await Promise.all([
+        supabase.from("contacts").select("id, first_name, last_name").order("first_name"),
+        supabase.from("companies").select("id, name").order("name"),
+      ]);
+      if (contactsData) setContacts(contactsData);
+      if (companiesData) setCompanies(companiesData);
     };
-    fetchContacts();
+    fetchData();
   }, []);
 
   const onSubmit = async (data: DealFormData) => {
@@ -119,6 +125,23 @@ export function DealForm({ stages, deal, onSuccess }: DealFormProps) {
             <SelectContent>
               {contacts.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {companies.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>{t.deals.form.company}</Label>
+          <Select defaultValue={watch("company_id") ?? undefined} onValueChange={(v) => setValue("company_id", v === "none" ? null : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Vincular empresa (opcional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sin empresa</SelectItem>
+              {companies.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

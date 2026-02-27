@@ -133,6 +133,7 @@ export const en = {
       closeDate: 'Close date',
       stage: 'Stage',
       contact: 'Contact',
+      company: 'Company',
       notes: 'Notes',
     },
     detail: {
