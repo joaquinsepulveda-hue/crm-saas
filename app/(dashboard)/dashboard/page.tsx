@@ -25,7 +25,25 @@ export default async function DashboardPage() {
   let kpis: DashboardKPIs | null = null;
   if (profile?.organization_id) {
     const { data } = await supabase.rpc("get_dashboard_kpis", { p_org_id: profile.organization_id });
-    kpis = data as DashboardKPIs;
+    if (data) {
+      kpis = data as DashboardKPIs;
+    } else {
+      // Fallback: direct queries if RPC is unavailable
+      const [{ count: contacts }, { count: deals }] = await Promise.all([
+        supabase.from("contacts").select("id", { count: "exact", head: true }).eq("organization_id", profile.organization_id),
+        supabase.from("deals").select("id", { count: "exact", head: true }).eq("organization_id", profile.organization_id).eq("status", "open"),
+      ]);
+      kpis = {
+        total_contacts: contacts ?? 0,
+        total_deals: deals ?? 0,
+        open_deals_value: 0,
+        won_deals_value: 0,
+        win_rate: 0,
+        activities_this_week: 0,
+        new_contacts_this_month: 0,
+        deals_by_stage: [],
+      };
+    }
   }
 
   const hour = new Date().getHours();

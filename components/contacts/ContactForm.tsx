@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { contactSchema, ContactFormData } from "@/lib/validations/contact";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,24 @@ export function ContactForm({ contact, onSuccess }: ContactFormProps) {
   const t = useT();
   const [loading, setLoading] = useState(false);
   const [tags, setTags] = useState<string[]>(contact?.tags ?? []);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ContactFormData>({
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("companies").select("id, name").order("name");
+      if (data) setCompanies(data);
+    };
+    fetchCompanies();
+  }, []);
+
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: contact ? {
       first_name: contact.first_name, last_name: contact.last_name,
       email: contact.email ?? "", phone: contact.phone ?? "",
       title: contact.title ?? "", status: contact.status,
+      company_id: contact.company_id ?? undefined,
       source: contact.source ?? undefined, tags: contact.tags, notes: contact.notes ?? "",
     } : { status: "lead", tags: [] },
   });
@@ -40,7 +51,15 @@ export function ContactForm({ contact, onSuccess }: ContactFormProps) {
   const onSubmit = async (data: ContactFormData) => {
     setLoading(true);
     const supabase = createClient();
-    const payload = { ...data, tags, email: data.email || null, phone: data.phone || null, title: data.title || null, notes: data.notes || null };
+    const payload = {
+      ...data,
+      tags,
+      email: data.email || null,
+      phone: data.phone || null,
+      title: data.title || null,
+      notes: data.notes || null,
+      company_id: data.company_id || null,
+    };
 
     let error;
     if (contact) {
@@ -96,6 +115,26 @@ export function ContactForm({ contact, onSuccess }: ContactFormProps) {
           <Input placeholder="CEO" {...register("title")} />
         </div>
       </div>
+
+      {companies.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>{t.contacts.detail.company}</Label>
+          <Select
+            defaultValue={watch("company_id") ?? undefined}
+            onValueChange={(v) => setValue("company_id", v === "none" ? null : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Vincular empresa (opcional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sin empresa</SelectItem>
+              {companies.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
